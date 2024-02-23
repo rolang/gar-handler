@@ -30,12 +30,11 @@ lazy val root = project
       sys.env.getOrElse("SONATYPE_USERNAME", ""),
       sys.env.getOrElse("SONATYPE_PASSWORD", ""),
     ),
-    publishTo := {
-      val nexus = "https://oss.sonatype.org/"
-      if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
-      else Some("releases" at nexus + "service/local/staging/deploy/maven2")
-    },
-    publishMavenStyle := true,
+    usePgpKeyHex("537C76F3EFF1B9BE6FD238B442BD95234C9636F3"),
+    sonatypeCredentialHost := "oss.sonatype.org",
+    sonatypeRepository     := s"https://${sonatypeCredentialHost.value}/service/local",
+    publishTo              := sonatypePublishToBundle.value,
+    publishMavenStyle      := true,
     libraryDependencies ++= Seq(
       "io.get-coursier" %% "coursier"             % "2.1.9" % Test,
       "com.google.cloud" % "google-cloud-storage" % "2.34.0",
