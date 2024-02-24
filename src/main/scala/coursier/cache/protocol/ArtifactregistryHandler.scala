@@ -68,7 +68,7 @@ trait Logger {
   def error(msg: String): Unit
 }
 
-final case class Module(project: String, repository: String, domain: String, name: String)
+final case class Module(project: String, region: String, repository: String, domain: String, name: String)
 
 class GcsArtifactRegistryUrlConnection(
   googleHttpRequestFactory: HttpRequestFactory,
@@ -80,9 +80,11 @@ class GcsArtifactRegistryUrlConnection(
   private val isMavenMetadataSha1 = url.getPath().endsWith("maven-metadata.xml.sha1")
 
   // can't run filter etc. on array that require scala.Predef.refArrayOps as it causes problems on loading via classlader so we do it the ugly way
-  private val arr = url.getPath.split("/")
+  private val arr    = url.getPath.split("/")
+  private val region = url.getHost.split("\\.")(0).stripSuffix("-maven")
   private val module = Module(
     project = arr.apply(1),
+    region = region,
     repository = arr(2),
     domain = s"${arr(3)}.${arr(4)}",
     name = s"${arr(5)}",
@@ -94,7 +96,7 @@ class GcsArtifactRegistryUrlConnection(
       newUrl.setScheme("https")
       newUrl.setHost("content-artifactregistry.googleapis.com")
       newUrl.appendRawPath(
-        s"/v1/projects/${module.project}/locations/asia/repositories/${module.repository}/packages/${module.domain}:${module.name}/versions"
+        s"/v1/projects/${module.project}/locations/${module.region}/repositories/${module.repository}/packages/${module.domain}:${module.name}/versions"
       )
       newUrl.put("fields", "versions.name,versions.createTime")
       newUrl.put("pageSize", 1000)
