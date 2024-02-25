@@ -14,7 +14,7 @@ Splitted into modules that can also be used without sbt and/or only with coursie
 To use the sbt plugin add to `project/plugins.sbt`:
 
 ```scala
-lazy val garHandlerVersion = "0.1.2-SNAPSHOT"
+lazy val garHandlerVersion = "0.1.2"
 
 addSbtPlugin("dev.rolang" % "sbt-gar-handler" % garHandlerVersion)
 
