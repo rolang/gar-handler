@@ -1,8 +1,8 @@
 ThisBuild / organization := "dev.rolang"
 ThisBuild / scmInfo := Some(
   ScmInfo(
-    url("https://github.com/rolang/gar-coursier"),
-    "scm:git@github.com:rolang/gar-coursier.git",
+    url("https://github.com/rolang/gar-handler"),
+    "scm:git@github.com:rolang/gar-handler.git",
   )
 )
 ThisBuild / developers := List(
@@ -13,9 +13,9 @@ ThisBuild / developers := List(
     url = url("https://rolang.dev"),
   )
 )
-ThisBuild / description := "Google Artifact Registry protocol support for coursier."
+ThisBuild / description := "Google Artifact Registry protocol support for coursier / sbt."
 ThisBuild / licenses    := List("Apache 2" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt"))
-ThisBuild / homepage    := Some(url("https://github.com/rolang/gar-coursier"))
+ThisBuild / homepage    := Some(url("https://github.com/rolang/gar-handler"))
 
 lazy val scala213 = "2.13.13"
 lazy val scala212 = "2.12.18"
