@@ -1,4 +1,4 @@
-package coursier.cache.protocol
+package dev.rolang.gar
 
 import com.google.api.client.http.{
   ByteArrayContent,
@@ -22,14 +22,9 @@ import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.common.collect.ImmutableList
 import com.google.auth.http.{HttpCredentialsAdapter, HttpTransportFactory}
+import java.net.MalformedURLException
 
-class ArtifactregistryHandler extends URLStreamHandlerFactory {
-
-  // println from Predef package is not supported when adding via classloader, so we use System.out
-  private val logger: Logger = new Logger {
-    override def info(msg: String): Unit  = System.out.println(msg)
-    override def error(msg: String): Unit = System.err.println(msg)
-  }
+object ArtifactRegistryUrlHandlerFactory {
 
   private def loadGoogleCredentials(): GoogleCredentials = {
     val scopes: java.util.Collection[String] =
@@ -53,24 +48,34 @@ class ArtifactregistryHandler extends URLStreamHandlerFactory {
     httpTransport.createRequestFactory(requestInitializer)
   }
 
-  def createURLStreamHandler(protocol: String): URLStreamHandler = {
+  def createURLStreamHandler(logger: Logger): ArtifactRegistryUrlHandler = {
     logger.info(s"Loading default Google credentials")
     val credentials = loadGoogleCredentials()
     logger.info(s"Google credentials loaded")
     val googleHttpRequestFactory = createHttpRequestFactory(credentials)
 
-    new GcsArtifactRegistryUrlHandler(googleHttpRequestFactory)(logger)
+    new ArtifactRegistryUrlHandler(googleHttpRequestFactory)(logger)
   }
+
+  def install(logger: Logger) =
+    try {
+      new URL("artifactregistry://example.com")
+      logger.debug(s"The artifactregistry:// URLStreamHandlers are already installed")
+    } catch {
+      case _: java.net.MalformedURLException =>
+        logger.info(s"Installing artifactregistry:// URLStreamHandlers")
+        URL.setURLStreamHandlerFactory {
+          case p @ "artifactregistry" => createURLStreamHandler(logger)
+          case _                      => null
+        }
+
+        logger.info(s"Installed artifactregistry:// URLStreamHandler")
+    }
 }
 
-trait Logger {
-  def info(msg: String): Unit
-  def error(msg: String): Unit
-}
+final case class MavenModule(project: String, region: String, repository: String, domain: String, name: String)
 
-final case class Module(project: String, region: String, repository: String, domain: String, name: String)
-
-class GcsArtifactRegistryUrlConnection(
+class ArtifactRegistryUrlConnection(
   googleHttpRequestFactory: HttpRequestFactory,
   url: URL,
 )(implicit
@@ -79,16 +84,20 @@ class GcsArtifactRegistryUrlConnection(
   private val isMavenMetadata     = url.getPath().endsWith("maven-metadata.xml")
   private val isMavenMetadataSha1 = url.getPath().endsWith("maven-metadata.xml.sha1")
 
-  // can't run filter etc. on array that require scala.Predef.refArrayOps as it causes problems on loading via classlader so we do it the ugly way
-  private val arr    = url.getPath.split("/")
-  private val region = url.getHost.split("\\.")(0).stripSuffix("-maven")
-  private val module = Module(
-    project = arr.apply(1),
-    region = region,
-    repository = arr(2),
-    domain = s"${arr(3)}.${arr(4)}",
-    name = s"${arr(5)}",
-  )
+  private val module = (
+    url.getPath.split("/").filter(_.nonEmpty),
+    url.getHost.split("\\.").headOption.map(_.stripSuffix("-maven")),
+  ) match {
+    case (Array(project, repo, domain, subDomain, name, _*), Some(region)) =>
+      MavenModule(
+        project = project,
+        region = region,
+        repository = repo,
+        domain = s"$domain.$subDomain",
+        name = s"$name",
+      )
+    case _ => throw new java.net.MalformedURLException(s"Invalid artifact registry maven url $url")
+  }
 
   private val genericUrl =
     if (isMavenMetadata || isMavenMetadataSha1) {
@@ -102,7 +111,11 @@ class GcsArtifactRegistryUrlConnection(
       newUrl.put("pageSize", 1000)
       newUrl
     } else {
-      GcsArtifactRegistryGenericUrlFactory.createFromUrl(url)
+      val genericUrl = new GenericUrl()
+      genericUrl.setScheme("https")
+      genericUrl.setHost(url.getHost)
+      genericUrl.appendRawPath(url.getPath)
+      genericUrl
     }
 
   private final var connectedWithHeaders: HttpHeaders = new HttpHeaders()
@@ -115,7 +128,7 @@ class GcsArtifactRegistryUrlConnection(
         connectedWithHeaders.set(header, headerValues)
       }
 
-      logger.info(s"Checking artifact at url: ${url} (mapped to: ${genericUrl}).")
+      logger.debug(s"Checking artifact at url: ${url} (mapped to: ${genericUrl}).")
 
       val httpRequest = googleHttpRequestFactory.buildHeadRequest(genericUrl)
       connected = httpRequest.execute().isSuccessStatusCode
@@ -132,7 +145,7 @@ class GcsArtifactRegistryUrlConnection(
       connect()
     }
     try {
-      logger.info(s"Receiving artifact from url: ${genericUrl}.")
+      logger.debug(s"Receiving artifact from url: ${genericUrl}.")
 
       if (isMavenMetadata || isMavenMetadataSha1) {
         val httpRequest  = googleHttpRequestFactory.buildGetRequest(genericUrl)
@@ -176,7 +189,7 @@ class GcsArtifactRegistryUrlConnection(
                               |$versioningXml
                               |</metadata>""".stripMargin
 
-        logger.info(s"Received maven-metadata.xml: ${metadataXml}.")
+        logger.debug(s"Received maven-metadata.xml: ${metadataXml}.")
 
         if (isMavenMetadataSha1) {
           val sha1 =
@@ -216,7 +229,7 @@ class GcsArtifactRegistryUrlConnection(
       override def close(): Unit = {
         super.close()
         try {
-          logger.info(s"Upload artifact from to: ${url}.")
+          logger.debug(s"Upload artifact from to: ${url}.")
 
           val httpRequest =
             googleHttpRequestFactory
@@ -255,20 +268,15 @@ class GcsArtifactRegistryUrlConnection(
 
 }
 
-object GcsArtifactRegistryGenericUrlFactory {
-
-  def createFromUrl(srcUrl: URL): GenericUrl = {
-    val genericUrl = new GenericUrl()
-    genericUrl.setScheme("https")
-    genericUrl.setHost(srcUrl.getHost)
-    genericUrl.appendRawPath(srcUrl.getPath)
-    genericUrl
-  }
-}
-
-class GcsArtifactRegistryUrlHandler(googleHttpRequestFactory: HttpRequestFactory)(implicit logger: Logger)
+class ArtifactRegistryUrlHandler(googleHttpRequestFactory: HttpRequestFactory)(implicit logger: Logger)
     extends URLStreamHandler {
 
   override def openConnection(url: URL): URLConnection =
-    new GcsArtifactRegistryUrlConnection(googleHttpRequestFactory, url)
+    new ArtifactRegistryUrlConnection(googleHttpRequestFactory, url)
+}
+
+trait Logger {
+  def info(msg: String): Unit
+  def error(msg: String): Unit
+  def debug(msg: String): Unit
 }
