@@ -7,7 +7,8 @@ Adds handler for `artifactregistry://` protocol to [sbt](https://www.scala-sbt.o
 Inspired by [abdolence/sbt-gcs-resolver](https://github.com/abdolence/sbt-gcs-resolver) and [987Nabil/gar-coursier](https://github.com/987Nabil/gar-coursier).
 
 Supports `artifactregistry` only.  
-Splitted into modules that can also be used without sbt and/or only with coursier by adding a custom protocol handler.
+Splitted into modules that can also be used without sbt and/or only with coursier by adding a custom protocol handler.  
+Adds support for missing `maven-metadata.xml`.
 
 ## Usage
 
