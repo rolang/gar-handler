@@ -16,12 +16,11 @@ object GarPlugin extends AutoPlugin {
   override def projectSettings: Seq[Def.Setting[_]] =
     Seq(
       onLoad in Global := (onLoad in Global).value.andThen { state =>
-        val sbtLogger        = state.log
-        val pRef: ProjectRef = thisProjectRef.value
+        val sbtLogger = state.log
         val logger = new dev.rolang.gar.Logger {
-          override def info(msg: String): Unit  = sbtLogger.info(s"[${pRef.project}] $msg")
-          override def error(msg: String): Unit = sbtLogger.err(s"[${pRef.project}] $msg")
-          override def debug(msg: String): Unit = sbtLogger.debug(s"[${pRef.project}] $msg")
+          override def info(msg: String): Unit  = sbtLogger.info(msg)
+          override def error(msg: String): Unit = sbtLogger.err(msg)
+          override def debug(msg: String): Unit = sbtLogger.debug(msg)
         }
 
         Try {

@@ -26,7 +26,7 @@ import java.net.MalformedURLException
 
 object ArtifactRegistryUrlHandlerFactory {
 
-  private def loadGoogleCredentials(): GoogleCredentials = {
+  private lazy val googleCredentials = {
     val scopes: java.util.Collection[String] =
       ImmutableList.of(
         "https://www.googleapis.com/auth/cloud-platform",
@@ -49,10 +49,7 @@ object ArtifactRegistryUrlHandlerFactory {
   }
 
   def createURLStreamHandler(logger: Logger): ArtifactRegistryUrlHandler = {
-    logger.info(s"Loading default Google credentials")
-    val credentials = loadGoogleCredentials()
-    logger.info(s"Google credentials loaded")
-    val googleHttpRequestFactory = createHttpRequestFactory(credentials)
+    val googleHttpRequestFactory = createHttpRequestFactory(googleCredentials)
 
     new ArtifactRegistryUrlHandler(googleHttpRequestFactory)(logger)
   }
@@ -63,13 +60,18 @@ object ArtifactRegistryUrlHandlerFactory {
       logger.debug(s"The artifactregistry:// URLStreamHandlers are already installed")
     } catch {
       case _: java.net.MalformedURLException =>
-        logger.info(s"Installing artifactregistry:// URLStreamHandlers")
-        URL.setURLStreamHandlerFactory {
-          case p @ "artifactregistry" => createURLStreamHandler(logger)
-          case _                      => null
+        logger.debug(s"Installing artifactregistry:// URLStreamHandlers")
+        try {
+          URL.setURLStreamHandlerFactory {
+            case p @ "artifactregistry" => createURLStreamHandler(logger)
+            case _                      => null
+          }
+          logger.info(s"Installed artifactregistry:// URLStreamHandler")
+        } catch {
+          case e: java.lang.Error if e.getMessage().contains("factory already defined") =>
+            logger.debug(s"The artifactregistry:// URLStreamHandlers are already installed")
+          case e: Throwable => throw e
         }
-
-        logger.info(s"Installed artifactregistry:// URLStreamHandler")
     }
 }
 

@@ -15,7 +15,7 @@ Adds support for missing `maven-metadata.xml`.
 To use the sbt plugin add to `project/plugins.sbt`:
 
 ```scala
-lazy val garHandlerVersion = "0.1.2"
+lazy val garHandlerVersion = "0.1.3"
 
 addSbtPlugin("dev.rolang" % "sbt-gar-handler" % garHandlerVersion)
 
@@ -32,7 +32,7 @@ To use with coursier only use the `dev.rolang:gar-coursier_2.13` package.
 Example usage via the coursier JVM CLI (ensure default google credentials are set up):
 
 ```bash
-cs launch coursier:2.1.9 dev.rolang:gar-coursier_2.13:0.1.2 -- \
+cs launch coursier:2.1.9 dev.rolang:gar-coursier_2.13:0.1.3 -- \
     resolve \
     -r '!artifactregistry://LOCATION-maven.pkg.dev/PROJECT/REPOSITORY' -r central \
     org:name:ver

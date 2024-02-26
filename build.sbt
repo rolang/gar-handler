@@ -21,7 +21,7 @@ lazy val scala213 = "2.13.13"
 lazy val scala212 = "2.12.18"
 
 lazy val commonSettings = List(
-  version := "0.1.2",
+  version := "0.1.3",
   credentials += Credentials(
     "Sonatype Nexus Repository Manager",
     "oss.sonatype.org",
