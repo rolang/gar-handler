@@ -17,8 +17,10 @@ ThisBuild / description := "Google Artifact Registry protocol support for coursi
 ThisBuild / licenses    := List("Apache 2" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt"))
 ThisBuild / homepage    := Some(url("https://github.com/rolang/gar-handler"))
 
-lazy val scala213 = "2.13.13"
-lazy val scala212 = "2.12.18"
+lazy val scala213 = "2.13.16"
+lazy val scala212 = "2.12.20"
+
+ThisBuild / scalaVersion := scala213
 
 lazy val commonSettings = List(
   version := "0.1.3",
@@ -38,7 +40,10 @@ lazy val commonSettings = List(
 lazy val root = (project in file("."))
   .dependsOn(core, coursier, plugin)
   .aggregate(core, coursier, plugin)
-  .settings(noPublishSettings)
+  .settings(
+    noPublishSettings,
+    crossScalaVersions := Nil
+  )
 
 val noPublishSettings = List(
   publish         := {},
@@ -79,7 +84,7 @@ lazy val coursier = project
     scalaVersion       := scala213,
     crossScalaVersions := Nil,
     libraryDependencies ++= Seq(
-      "io.get-coursier" %% "coursier" % "2.1.9" % Test
+      "io.get-coursier" %% "coursier" % "2.1.24" % Test
     ),
   )
 
