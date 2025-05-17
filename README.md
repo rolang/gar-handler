@@ -1,4 +1,3 @@
-[![Sonatype Releases](https://img.shields.io/nexus/r/https/oss.sonatype.org/dev.rolang/gar-coursier_2.13.svg?label=Sonatype%20Release)](https://oss.sonatype.org/content/repositories/releases/dev/rolang/gar-coursier_2.13/)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/dev.rolang/gar-coursier_2.13/badge.svg)](https://maven-badges.herokuapp.com/maven-central/dev.rolang/gar-coursier_2.13/)
 
 # Google Artifact Registry support for sbt and/or coursier
@@ -32,7 +31,7 @@ To use with coursier only use the `dev.rolang:gar-coursier_2.13` package.
 Example usage via the coursier JVM CLI (ensure default google credentials are set up):
 
 ```bash
-cs launch coursier:2.1.9 dev.rolang:gar-coursier_2.13:0.1.3 -- \
+cs launch coursier:2.1.24 dev.rolang:gar-coursier_2.13:0.1.3 -- \
     resolve \
     -r '!artifactregistry://LOCATION-maven.pkg.dev/PROJECT/REPOSITORY' -r central \
     org:name:ver
@@ -52,5 +51,5 @@ sbt '++2.13; coursier/Test/runMain GetVersions asia-maven.pkg.dev/my-project/mav
 #### Publish local:
 
 ```scala
-sbt '++2.13; coursier/publishLocal; ++2.12; plugin/publishLocal'
+sbt '+publishLocal'
 ```
