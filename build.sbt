@@ -14,8 +14,11 @@ ThisBuild / developers := List(
   )
 )
 ThisBuild / description := "Google Artifact Registry protocol support for coursier / sbt."
-ThisBuild / licenses    := List("Apache 2" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt"))
+ThisBuild / licenses    := Seq(License.Apache2)
 ThisBuild / homepage    := Some(url("https://github.com/rolang/gar-handler"))
+ThisBuild / version ~= { v => if (v.contains('+')) s"${v.replace('+', '-')}-SNAPSHOT" else v }
+ThisBuild / versionScheme          := Some("early-semver")
+ThisBuild / sonatypeCredentialHost := xerial.sbt.Sonatype.sonatypeCentralHost
 
 lazy val scala213 = "2.13.16"
 lazy val scala212 = "2.12.20"
@@ -23,18 +26,8 @@ lazy val scala212 = "2.12.20"
 ThisBuild / scalaVersion := scala213
 
 lazy val commonSettings = List(
-  version := "0.1.3",
-  credentials += Credentials(
-    "Sonatype Nexus Repository Manager",
-    "oss.sonatype.org",
-    sys.env.getOrElse("SONATYPE_USERNAME", ""),
-    sys.env.getOrElse("SONATYPE_PASSWORD", ""),
-  ),
-  usePgpKeyHex("537C76F3EFF1B9BE6FD238B442BD95234C9636F3"),
-  sonatypeCredentialHost := "oss.sonatype.org",
-  sonatypeRepository     := s"https://${sonatypeCredentialHost.value}/service/local",
-  publishTo              := sonatypePublishToBundle.value,
-  publishMavenStyle      := true,
+  publishTo         := sonatypePublishToBundle.value,
+  publishMavenStyle := true,
 )
 
 lazy val root = (project in file("."))
@@ -42,7 +35,7 @@ lazy val root = (project in file("."))
   .aggregate(core, coursier, plugin)
   .settings(
     noPublishSettings,
-    crossScalaVersions := Nil
+    crossScalaVersions := Nil,
   )
 
 val noPublishSettings = List(
@@ -82,7 +75,7 @@ lazy val coursier = project
   .settings(
     moduleName         := "gar-coursier",
     scalaVersion       := scala213,
-    crossScalaVersions := Nil,
+    crossScalaVersions := Seq(scala213),
     libraryDependencies ++= Seq(
       "io.get-coursier" %% "coursier" % "2.1.24" % Test
     ),
@@ -97,7 +90,7 @@ lazy val plugin = project
   .settings(
     moduleName                       := "sbt-gar-handler",
     scalaVersion                     := scala212,
-    crossScalaVersions               := Nil,
+    crossScalaVersions               := Seq(scala212),
     sbtPluginPublishLegacyMavenStyle := false,
     scriptedLaunchOpts := {
       scriptedLaunchOpts.value ++

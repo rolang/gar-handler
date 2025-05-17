@@ -18,7 +18,7 @@ object GarPlugin extends AutoPlugin {
       onLoad in Global := (onLoad in Global).value.andThen { state =>
         val sbtLogger = state.log
         val logger = new dev.rolang.gar.Logger {
-          override def info(msg: String): Unit  = sbtLogger.info(msg)
+          override def info(msg: String): Unit = sbtLogger.info(msg)
           override def error(msg: String): Unit = sbtLogger.err(msg)
           override def debug(msg: String): Unit = sbtLogger.debug(msg)
         }
@@ -37,6 +37,6 @@ object GarPlugin extends AutoPlugin {
       },
       csrConfiguration := csrConfiguration.value.withProtocolHandlerDependencies(
         Seq("dev.rolang" % "gar-coursier_2.13" % dev.rolang.gar.version.value)
-      ),
+      )
     ) ++ super.projectSettings
 }
