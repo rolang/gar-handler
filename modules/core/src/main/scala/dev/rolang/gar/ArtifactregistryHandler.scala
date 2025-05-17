@@ -5,7 +5,7 @@ import com.google.api.client.http.{
   HttpHeaders,
   HttpRequest,
   HttpRequestFactory,
-  HttpResponseException,
+  HttpResponseException
 }
 
 import java.io.{ByteArrayOutputStream, InputStream, OutputStream}
@@ -30,7 +30,7 @@ object ArtifactRegistryUrlHandlerFactory {
     val scopes: java.util.Collection[String] =
       ImmutableList.of(
         "https://www.googleapis.com/auth/cloud-platform",
-        "https://www.googleapis.com/auth/cloud-platform.read-only",
+        "https://www.googleapis.com/auth/cloud-platform.read-only"
       )
 
     GoogleCredentials.getApplicationDefault().createScoped(scopes)
@@ -41,10 +41,10 @@ object ArtifactRegistryUrlHandlerFactory {
   }
 
   private def createHttpRequestFactory(
-    credentials: GoogleCredentials
+      credentials: GoogleCredentials
   ): HttpRequestFactory = {
     val requestInitializer = new HttpCredentialsAdapter(credentials)
-    val httpTransport      = httpTransportFactory.create()
+    val httpTransport = httpTransportFactory.create()
     httpTransport.createRequestFactory(requestInitializer)
   }
 
@@ -78,17 +78,17 @@ object ArtifactRegistryUrlHandlerFactory {
 final case class MavenModule(project: String, region: String, repository: String, domain: String, name: String)
 
 class ArtifactRegistryUrlConnection(
-  googleHttpRequestFactory: HttpRequestFactory,
-  url: URL,
+    googleHttpRequestFactory: HttpRequestFactory,
+    url: URL
 )(implicit
-  logger: Logger
+    logger: Logger
 ) extends HttpURLConnection(url) {
-  private val isMavenMetadata     = url.getPath().endsWith("maven-metadata.xml")
+  private val isMavenMetadata = url.getPath().endsWith("maven-metadata.xml")
   private val isMavenMetadataSha1 = url.getPath().endsWith("maven-metadata.xml.sha1")
 
   private val module = (
     url.getPath.split("/").filter(_.nonEmpty),
-    url.getHost.split("\\.").headOption.map(_.stripSuffix("-maven")),
+    url.getHost.split("\\.").headOption.map(_.stripSuffix("-maven"))
   ) match {
     case (Array(project, repo, domain, subDomain, name, _*), Some(region)) =>
       MavenModule(
@@ -96,7 +96,7 @@ class ArtifactRegistryUrlConnection(
         region = region,
         repository = repo,
         domain = s"$domain.$subDomain",
-        name = s"$name",
+        name = s"$name"
       )
     case _ => throw new java.net.MalformedURLException(s"Invalid artifact registry maven url $url")
   }
@@ -150,7 +150,7 @@ class ArtifactRegistryUrlConnection(
       logger.debug(s"Receiving artifact from url: ${genericUrl}.")
 
       if (isMavenMetadata || isMavenMetadataSha1) {
-        val httpRequest  = googleHttpRequestFactory.buildGetRequest(genericUrl)
+        val httpRequest = googleHttpRequestFactory.buildGetRequest(genericUrl)
         val httpResponse = appendHeadersBeforeConnect(httpRequest).execute()
 
         responseCode = httpResponse.getStatusCode()
@@ -158,11 +158,14 @@ class ArtifactRegistryUrlConnection(
 
         val resLines = Source.fromInputStream(httpResponse.getContent).getLines()
 
-        val versions = resLines.collect {
-          case l if l.contains("\"name\":")       => l.replaceAll("\"|,|\\s", "").split("/").lastOption
-          case l if l.contains("\"createTime\":") => Some(l.replace("\"createTime\":", "").replace("\"", "").trim())
-          case _                                  => None
-        }.collect { case Some(v) => v }.toList
+        val versions = resLines
+          .collect {
+            case l if l.contains("\"name\":")       => l.replaceAll("\"|,|\\s", "").split("/").lastOption
+            case l if l.contains("\"createTime\":") => Some(l.replace("\"createTime\":", "").replace("\"", "").trim())
+            case _                                  => None
+          }
+          .collect { case Some(v) => v }
+          .toList
           .grouped(2)
           .map {
             case v :: dt :: Nil => Some((v, OffsetDateTime.parse(dt)))
@@ -206,7 +209,7 @@ class ArtifactRegistryUrlConnection(
           new ByteArrayInputStream(metadataXml.getBytes(StandardCharsets.UTF_8))
         }
       } else {
-        val httpRequest  = googleHttpRequestFactory.buildGetRequest(genericUrl)
+        val httpRequest = googleHttpRequestFactory.buildGetRequest(genericUrl)
         val httpResponse = appendHeadersBeforeConnect(httpRequest).execute()
 
         responseCode = httpResponse.getStatusCode()
@@ -239,8 +242,8 @@ class ArtifactRegistryUrlConnection(
                 genericUrl,
                 new ByteArrayContent(
                   connectedWithHeaders.getContentType,
-                  toByteArray,
-                ),
+                  toByteArray
+                )
               )
 
           appendHeadersBeforeConnect(httpRequest).execute()
@@ -260,7 +263,7 @@ class ArtifactRegistryUrlConnection(
   override def usingProxy(): Boolean = false
 
   private def appendHeadersBeforeConnect(
-    httpRequest: HttpRequest
+      httpRequest: HttpRequest
   ): HttpRequest = {
     connectedWithHeaders.forEach { case (header, headerValues) =>
       httpRequest.getHeaders.set(header, headerValues)
