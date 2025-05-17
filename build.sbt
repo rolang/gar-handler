@@ -34,6 +34,7 @@ lazy val root = (project in file("."))
   .dependsOn(core, coursier, plugin)
   .aggregate(core, coursier, plugin)
   .settings(
+    name := "gar-handler",
     noPublishSettings,
     crossScalaVersions := Nil
   )
