@@ -22,34 +22,38 @@ import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.common.collect.ImmutableList
 import com.google.auth.http.{HttpCredentialsAdapter, HttpTransportFactory}
+import java.io.IOException
 import java.net.MalformedURLException
 
 object ArtifactRegistryUrlHandlerFactory {
 
-  private lazy val googleCredentials = {
+  private def googleCredentials(logger: Logger): Option[GoogleCredentials] = {
     val scopes: java.util.Collection[String] =
       ImmutableList.of(
         "https://www.googleapis.com/auth/cloud-platform",
         "https://www.googleapis.com/auth/cloud-platform.read-only"
       )
 
-    GoogleCredentials.getApplicationDefault().createScoped(scopes)
+    try Option(GoogleCredentials.getApplicationDefault().createScoped(scopes))
+    catch {
+      case e: IOException =>
+        logger.debug(s"Cannot load Google credentials: ${e.getMessage}")
+        None
+    }
   }
 
   private final val httpTransportFactory: HttpTransportFactory = { () =>
     new NetHttpTransport()
   }
 
-  private def createHttpRequestFactory(
-      credentials: GoogleCredentials
-  ): HttpRequestFactory = {
-    val requestInitializer = new HttpCredentialsAdapter(credentials)
-    val httpTransport = httpTransportFactory.create()
-    httpTransport.createRequestFactory(requestInitializer)
-  }
-
   def createURLStreamHandler(logger: Logger): ArtifactRegistryUrlHandler = {
-    val googleHttpRequestFactory = createHttpRequestFactory(googleCredentials)
+    val httpTransport = httpTransportFactory.create()      
+    val googleHttpRequestFactory = googleCredentials(logger) match {
+      case Some(credentials) =>
+        val requestInitializer = new HttpCredentialsAdapter(credentials)
+        httpTransport.createRequestFactory(requestInitializer)
+      case None => httpTransport.createRequestFactory()
+    }
 
     new ArtifactRegistryUrlHandler(googleHttpRequestFactory)(logger)
   }
