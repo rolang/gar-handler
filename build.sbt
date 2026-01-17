@@ -18,15 +18,18 @@ ThisBuild / licenses := Seq(License.Apache2)
 ThisBuild / homepage := Some(url("https://github.com/rolang/gar-handler"))
 ThisBuild / version ~= { v => if (v.contains('+')) s"${v.replace('+', '-')}-SNAPSHOT" else v }
 ThisBuild / versionScheme := Some("early-semver")
-ThisBuild / sonatypeCredentialHost := xerial.sbt.Sonatype.sonatypeCentralHost
 
-lazy val scala213 = "2.13.16"
-lazy val scala212 = "2.12.20"
+lazy val scala213 = "2.13.18"
+lazy val scala212 = "2.12.21"
 
 ThisBuild / scalaVersion := scala213
 
 lazy val commonSettings = List(
-  publishTo := sonatypePublishToBundle.value,
+  publishTo := {
+    val centralSnapshots = "https://central.sonatype.com/repository/maven-snapshots/"
+    if (isSnapshot.value) Some("central-snapshots" at centralSnapshots)
+    else localStaging.value
+  },
   publishMavenStyle := true
 )
 
@@ -64,7 +67,7 @@ lazy val core = project
       Seq(file)
     }.taskValue,
     libraryDependencies ++= Seq(
-      "com.google.cloud" % "google-cloud-storage" % "2.34.0"
+      "com.google.cloud" % "google-cloud-storage" % "2.62.0"
     )
   )
 
