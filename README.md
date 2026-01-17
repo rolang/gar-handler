@@ -1,4 +1,5 @@
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/dev.rolang/gar-coursier_2.13/badge.svg)](https://maven-badges.herokuapp.com/maven-central/dev.rolang/gar-coursier_2.13/)
+
+![Maven Central Version](https://img.shields.io/maven-central/v/dev.rolang/gar-coursier_2.13)
 
 # Google Artifact Registry support for sbt and/or coursier
 
@@ -14,7 +15,7 @@ Adds support for missing `maven-metadata.xml`.
 To use the sbt plugin add to `project/plugins.sbt`:
 
 ```scala
-lazy val garHandlerVersion = "0.1.3"
+lazy val garHandlerVersion = "0.1.4"
 
 addSbtPlugin("dev.rolang" % "sbt-gar-handler" % garHandlerVersion)
 
