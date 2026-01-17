@@ -26,7 +26,7 @@ object GarPlugin extends AutoPlugin {
         Try {
           dev.rolang.gar.ArtifactRegistryUrlHandlerFactory.install(logger)
         } match {
-          case Success(_) => state
+          case Success(_)   => state
           case Failure(err) => {
             sbtLogger.err(
               s"Failed to install artigactregistry handler: ${err}. Publishing/resolving artifacts from Google Artifact Registry is disabled."

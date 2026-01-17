@@ -47,7 +47,7 @@ object ArtifactRegistryUrlHandlerFactory {
   }
 
   def createURLStreamHandler(logger: Logger): ArtifactRegistryUrlHandler = {
-    val httpTransport = httpTransportFactory.create()      
+    val httpTransport = httpTransportFactory.create()
     val googleHttpRequestFactory = googleCredentials(logger) match {
       case Some(credentials) =>
         val requestInitializer = new HttpCredentialsAdapter(credentials)
@@ -179,7 +179,7 @@ class ArtifactRegistryUrlConnection(
           .toList
 
         val versioningXml = versions.headOption.map(_ => versions.maxBy(_._2)) match {
-          case None => ""
+          case None                      => ""
           case Some((latestV, latestDt)) =>
             s"""|  <versioning>
                 |    <latest>${latestV}</latest>

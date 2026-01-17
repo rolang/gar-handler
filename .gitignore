@@ -9,6 +9,7 @@ src_managed/
 project/boot/
 project/plugins/project/
 project/local-plugins.sbt
+project/project/
 .history
 .ensime
 .ensime_cache/
@@ -24,7 +25,7 @@ local.sbt
 # Metals
 .bloop/
 .metals/
-metals.sbt
+project/metals.sbt
 
 # IDEA
 .idea

@@ -11,13 +11,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
       - uses: coursier/cache-action@v6
       - uses: VirtusLab/scala-cli-setup@main
         with:
           jvm: temurin:21
           apps: sbt
-          power: true 
       - run: sbt +Test/compile
   publish:
     runs-on: ubuntu-latest
@@ -25,7 +24,7 @@ jobs:
     needs: [test]
     if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/master')
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
       - uses: coursier/cache-action@v6
       - uses: VirtusLab/scala-cli-setup@main
         with:
@@ -51,4 +50,4 @@ jobs:
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        run: sbt '+publishSigned; sonatypeCentralRelease'
+        run: sbt '+publishSigned; sonaRelease'
