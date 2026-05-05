@@ -46,17 +46,17 @@ object ArtifactRegistryUrlHandlerFactory {
     new NetHttpTransport()
   }
 
-  def createURLStreamHandler(logger: Logger): ArtifactRegistryUrlHandler = {
+  def createRequestFactory(logger: Logger): HttpRequestFactory = {
     val httpTransport = httpTransportFactory.create()
-    val googleHttpRequestFactory = googleCredentials(logger) match {
+    googleCredentials(logger) match {
       case Some(credentials) =>
-        val requestInitializer = new HttpCredentialsAdapter(credentials)
-        httpTransport.createRequestFactory(requestInitializer)
+        httpTransport.createRequestFactory(new HttpCredentialsAdapter(credentials))
       case None => httpTransport.createRequestFactory()
     }
-
-    new ArtifactRegistryUrlHandler(googleHttpRequestFactory)(logger)
   }
+
+  def createURLStreamHandler(logger: Logger): ArtifactRegistryUrlHandler =
+    new ArtifactRegistryUrlHandler(createRequestFactory(logger))(logger)
 
   def install(logger: Logger) =
     try {

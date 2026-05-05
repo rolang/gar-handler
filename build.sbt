@@ -67,7 +67,7 @@ lazy val core = project
       Seq(file)
     }.taskValue,
     libraryDependencies ++= Seq(
-      "com.google.cloud" % "google-cloud-storage" % "2.62.0"
+      "com.google.cloud" % "google-cloud-storage" % "2.67.0"
     )
   )
 

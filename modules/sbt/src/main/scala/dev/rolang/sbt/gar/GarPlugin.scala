@@ -2,8 +2,6 @@ package dev.rolang.sbt.gar
 
 import sbt._
 import sbt.Keys._
-import java.io.File
-
 import scala.util.{Failure, Success, Try}
 
 object GarPlugin extends AutoPlugin {
@@ -37,6 +35,11 @@ object GarPlugin extends AutoPlugin {
       },
       csrConfiguration := csrConfiguration.value.withProtocolHandlerDependencies(
         Seq("dev.rolang" % "gar-coursier_2.13" % dev.rolang.gar.version.value)
-      )
+      ),
+      publishTo := publishTo.value.map {
+        case m: sbt.librarymanagement.MavenRepository if m.root.startsWith("artifactregistry://") =>
+          ArtifactRegistryIvyResolver.create(m.name, m.root)
+        case other => other
+      }
     ) ++ super.projectSettings
 }
