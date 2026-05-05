@@ -25,6 +25,15 @@ csrConfiguration := csrConfiguration.value.withProtocolHandlerDependencies(
 )
 ```
 
+For publish settings in `build.sbt` use:
+```scala
+publishTo := Some(
+  dev.rolang.sbt.gar.ArtifactRegistryIvyResolver.create(
+    "My Registry", "https://${LOCATION}-maven.pkg.dev/${GCP_PROJECT}/maven"
+  )
+)
+```
+
 The plugin is automatically enabled for all projects and will install a global `artifactregistry://` handler
 as well as adding the protocol handler to coursier.
 
