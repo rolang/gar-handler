@@ -115,6 +115,8 @@ class ArtifactRegistryUrlConnection(
       )
       newUrl.put("fields", "versions.name,versions.createTime")
       newUrl.put("pageSize", 1000)
+      // Default ASC ordering hides the latest versions on packages with >1000 versions (server-side pageSize cap is 1000).
+      newUrl.put("orderBy", "createTime desc")
       newUrl
     } else {
       val genericUrl = new GenericUrl()
