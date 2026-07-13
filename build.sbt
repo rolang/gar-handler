@@ -21,8 +21,11 @@ ThisBuild / versionScheme := Some("early-semver")
 
 lazy val scala213 = "2.13.18"
 lazy val scala212 = "2.12.21"
+lazy val scala3 = "3.8.4"
 
 ThisBuild / scalaVersion := scala213
+
+ThisBuild / allowMismatchScala := true
 
 lazy val commonSettings = List(
   publishTo := {
@@ -34,7 +37,6 @@ lazy val commonSettings = List(
 )
 
 lazy val root = (project in file("."))
-  .dependsOn(core, coursier, plugin)
   .aggregate(core, coursier, plugin)
   .settings(
     name := "gar-handler",
@@ -55,7 +57,7 @@ lazy val core = project
   .settings(
     moduleName := "gar-handler",
     scalaVersion := scala212,
-    crossScalaVersions := Seq(scala212, scala213),
+    crossScalaVersions := Seq(scala212, scala213, scala3),
     Compile / sourceGenerators += Def.task {
       val file = (Compile / sourceManaged).value / "dev" / "rolang" / "gar" / "version.scala"
       val contents = version.value
@@ -94,7 +96,13 @@ lazy val plugin = project
   .settings(
     moduleName := "sbt-gar-handler",
     scalaVersion := scala212,
-    crossScalaVersions := Seq(scala212),
+    crossScalaVersions := Seq(scala212, scala3),
+    pluginCrossBuild / sbtVersion := {
+      scalaBinaryVersion.value match {
+        case "2.12" => "1.12.11"
+        case _      => "2.0.0"
+      }
+    },
     sbtPluginPublishLegacyMavenStyle := false,
     scriptedLaunchOpts := {
       scriptedLaunchOpts.value ++
