@@ -29,7 +29,7 @@ object GarCompat:
       },
       publishTo := publishTo.value.map {
         case m: sbt.librarymanagement.MavenRepository if m.root.startsWith("artifactregistry://") =>
-          m
+          ArtifactRegistryIvyResolver.create(m.name, m.root)
         case other => other
       }
     )
